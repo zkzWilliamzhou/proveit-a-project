@@ -1,0 +1,9 @@
+{
+  "after_deepening": "e0e5142527e86a7488a45ea5861e4035f9fa838e4be94566263b8169c9e88bb7",
+  "before_deepening": "e0e5142527e86a7488a45ea5861e4035f9fa838e4be94566263b8169c9e88bb7",
+  "formats": 5,
+  "identical": true,
+  "note": "Reconstructed pre-deepening implementation vs final detectors.py, same script.",
+  "observations": 36,
+  "scenarios": 6
+}
