@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>proveit architecture review</title>
+<style>
+  :root { --ink:#12161c; --muted:#5b6672; --line:#dfe4ea; --bg:#f6f8fa; --card:#fff;
+          --strong:#0b6b3a; --worth:#8a5a00; --spec:#5a4b8a; --blue:#185fa5; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+  header { padding:40px 24px 28px; background:#0d1117; color:#fff; }
+  header .inner, main { max-width:1040px; margin:0 auto; }
+  h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.4px; }
+  header p { margin:0; color:#9fb0c0; }
+  main { padding:28px 24px 64px; }
+  .lede { background:#fff; border:1px solid var(--line); border-radius:10px;
+          padding:18px 20px; margin-bottom:26px; }
+  .lede h2 { margin:0 0 8px; font-size:17px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
+          padding:22px; margin:0 0 22px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .card h2 { margin:0 0 4px; font-size:20px; }
+  .badge { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.4px;
+           padding:3px 9px; border-radius:999px; color:#fff; vertical-align:3px; margin-left:8px; }
+  .strong { background:var(--strong); } .worth { background:var(--worth); }
+  .spec { background:var(--spec); }
+  .meta { color:var(--muted); font-size:13px; margin:0 0 16px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .box { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfcfd; }
+  .box h3 { margin:0 0 8px; font-size:13px; text-transform:uppercase;
+            letter-spacing:.6px; color:var(--muted); }
+  dl { margin:0; } dt { font-weight:700; margin-top:12px; font-size:13px; }
+  dd { margin:2px 0 0; color:#33404d; }
+  code { background:#eef2f6; padding:1px 5px; border-radius:4px; font-size:13px; }
+  svg { display:block; width:100%; height:auto; }
+  .top { background:#0d1117; color:#fff; border:0; }
+  .top h2 { color:#fff; } .top .meta { color:#9fb0c0; }
+  .top code { background:#222c38; color:#dce6f2; }
+  footer { color:var(--muted); font-size:13px; margin-top:26px; }
+  @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header><div class="inner">
+  <h1>proveit architecture review</h1>
+  <p>Deepening candidates, deletion test, and a behavior-preservation gate</p>
+</div></header>
+<main>
+
+<div class="lede">
+  <h2>Scope before the scan</h2>
+  <p>The change hotspots are <code>witnesses/builtin.py</code> and <code>reporters/__init__.py</code>.
+  Both grew during implementation. Vocabulary comes from <code>GLOSSARY.md</code> and
+  <code>codebase-design</code>: <strong>module</strong>, <strong>interface</strong>,
+  <strong>depth</strong>, <strong>seam</strong>, <strong>adapter</strong>,
+  <strong>leverage</strong>, <strong>locality</strong>. ADR 0001 (closed witness registry)
+  and ADR 0004 (abstention is a result) are not re-litigated here.</p>
+  <p>Deletion test applied to each suspect: would removing it concentrate complexity,
+  or just move it? Only a "yes, concentrates" earns a deepening candidate.</p>
+</div>
+
+<div class="card">
+  <h2>Candidate 1 <span class="badge strong">Strong</span></h2>
+  <p class="meta">Files: <code>proveit/witnesses/builtin.py</code> &rarr; new <code>proveit/detectors.py</code></p>
+  <dl>
+    <dt>Problem</dt>
+    <dd>The <code>diff.no_secrets</code> Witness owns the detector catalog, Shannon entropy,
+        per-line caps, finding shape and the verdict in one function. Its <strong>interface</strong>
+        requires a full git Context. The complexity has no <strong>locality</strong>: nothing else
+        can reach the detector, and tests need a repository fixture to exercise it.</dd>
+    <dt>Solution</dt>
+    <dd>One deep <strong>module</strong> with a small <strong>interface</strong>:
+        <code>scan_added_lines(lines) -&gt; ScanResult(findings, lines_scanned)</code>.
+        The Witness becomes a thin <strong>adapter</strong>. Patterns, entropy threshold,
+        caps and finding shape move behind the seam.</dd>
+    <dt>Benefits</dt>
+    <dd>Higher <strong>depth</strong> and <strong>leverage</strong>: four direct unit tests
+        replace a git fixture. The <strong>interface is the test surface</strong>. One
+        <strong>adapter</strong> means a hypothetical <strong>seam</strong>; a second consumer
+        would make it real. Deleting the module would scatter the detection complexity back
+        into every Witness, so the deletion test confirms concentration.</dd>
+  </dl>
+  <div class="grid">
+    <div class="box"><h3>Before</h3>
+      <svg viewBox="0 0 420 210" role="img" aria-label="Before: one shallow witness">
+        <rect x="10" y="12" width="400" height="186" rx="10" fill="#fff" stroke="#dfe4ea"/>
+        <rect x="28" y="30" width="364" height="150" rx="8" fill="#f3f6f9" stroke="#c8d2dc"/>
+        <text x="44" y="52" font-size="13" font-weight="700">diff.no_secrets Witness</text>
+        <text x="44" y="76" font-size="12">detector catalog</text>
+        <text x="44" y="98" font-size="12">entropy math</text>
+        <text x="44" y="120" font-size="12">line / finding caps</text>
+        <text x="44" y="142" font-size="12">finding shape</text>
+        <text x="44" y="164" font-size="12">PASS / FAIL decision</text>
+        <text x="210" y="196" font-size="11" fill="#5b6672" text-anchor="middle">interface ≈ implementation</text>
+      </svg>
+    </div>
+    <div class="box"><h3>After</h3>
+      <svg viewBox="0 0 420 210" role="img" aria-label="After: deep detectors module">
+        <rect x="10" y="12" width="400" height="186" rx="10" fill="#fff" stroke="#dfe4ea"/>
+        <rect x="28" y="26" width="364" height="42" rx="8" fill="#e8f2fb" stroke="#185fa5"/>
+        <text x="44" y="52" font-size="12" font-weight="700">scan_added_lines(lines) -&gt; ScanResult</text>
+        <path d="M210 68 L210 86" stroke="#185fa5" stroke-width="2"/>
+        <rect x="28" y="86" width="364" height="94" rx="8" fill="#f3f6f9" stroke="#c8d2dc"/>
+        <text x="44" y="108" font-size="12">catalog · entropy · caps · shape</text>
+        <text x="44" y="130" font-size="12">no I/O · no verdict · no git</text>
+        <text x="44" y="160" font-size="12" fill="#0b6b3a">unit-testable through one seam</text>
+        <text x="210" y="196" font-size="11" fill="#5b6672" text-anchor="middle">thin adapter above deep module</text>
+      </svg>
+    </div>
+  </div>
+  <p class="meta">Gate: <code>docs/fingerprint_equivalence.json</code> plus
+  <code>tests/test_detectors_equivalence.py</code>. Six fixtures, five report formats,
+  36 observations. Hashes must match before and after. They do.</p>
+</div>
+
+<div class="card">
+  <h2>Candidate 2 <span class="badge worth">Worth exploring</span></h2>
+  <p class="meta">Files: <code>proveit/witnesses/builtin.py</code></p>
+  <dl>
+    <dt>Problem</dt>
+    <dd>One 600-line module holds diff, file, execution and API Witnesses. A reader
+        bounces between unrelated concerns.</dd>
+    <dt>Solution considered</dt>
+    <dd>Split by claim family into three files.</dd>
+    <dt>Why it is not the recommendation</dt>
+    <dd>Deletion test says it just moves complexity. No <strong>interface</strong> shrinks,
+        no <strong>depth</strong> increases, and the registry import changes add churn to a
+        module whose behavior is already pinned by a fingerprint. Revisit only when a second
+        consumer needs a separate <strong>seam</strong>.</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h2>Candidate 3 <span class="badge spec">Speculative</span></h2>
+  <p class="meta">Files: <code>proveit/reporters/__init__.py</code></p>
+  <dl>
+    <dt>Problem</dt>
+    <dd><code>render(receipt, fmt)</code> dispatches five formats from one module.</dd>
+    <dt>Solution considered</dt>
+    <dd>A reporter plugin registry so contributors add formats without touching core.</dd>
+    <dt>Why it is rejected</dt>
+    <dd>It creates a dynamic-loading <strong>seam</strong> inside code that writes public CI
+        artifacts. That contradicts ADR 0001 and adds a code-loading surface to untrusted
+        data. The current module is already deep: one <strong>interface</strong> hides five
+        formats and the control-character cleaning boundary.</dd>
+  </dl>
+</div>
+
+<div class="card top">
+  <h2>Top recommendation</h2>
+  <p class="meta">Candidate 1. It is the only candidate that increases depth without opening
+  a seam or moving code for its own sake.</p>
+  <p>Implemented as ADR 0002. The manager's hard constraint was that no function may change.
+  We measured that constraint instead of asserting it: the pre-deepening implementation was
+  reconstructed, the deterministic fingerprint ran, the new module was restored, and the
+  fingerprint ran again. Both produced the same hash across 6 scenarios and 5 report formats.
+  <code>scripts/verify_all.py</code> re-checks the hash on every release gate.</p>
+</div>
+
+<footer>
+  Offline by design: inline CSS and SVG, no CDN. Generated for the improve-codebase-architecture
+  workflow. See <code>GLOSSARY.md</code>, <code>docs/adr/</code> and <code>docs/REVIEW_LOG.md</code>.
+</footer>
+</main>
+</body>
+</html>
