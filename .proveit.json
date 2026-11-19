@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "base": "HEAD",
+  "deny_paths": [".github/workflows", "docs/adr"],
+  "max_diff_lines": 400
+}
