@@ -1,0 +1,42 @@
+"""Every resource bound lives here.
+
+One module owns the numbers so an auditor can read the entire attack surface in
+one screen. Never scatter ad-hoc limits across the codebase.
+"""
+
+from __future__ import annotations
+
+MAX_TRANSCRIPT_BYTES = 2 * 1024 * 1024
+MAX_TRANSCRIPT_LINES = 20_000
+MAX_LINE_CHARS = 4_096
+MAX_CLAIMS = 200
+MAX_CLAIM_CHARS = 512
+MAX_MANIFEST_BYTES = 512 * 1024
+MAX_CONFIG_BYTES = 64 * 1024
+MAX_FILE_BYTES = 1 * 1024 * 1024
+MAX_DIFF_BYTES = 4 * 1024 * 1024
+MAX_TAR_BYTES = 32 * 1024 * 1024
+MAX_TAR_MEMBERS = 20_000
+MAX_OUTPUT_BYTES = 256 * 1024
+MAX_EVIDENCE_CHARS = 2_000
+MAX_PARAMS = 32
+MAX_PARAM_STR = 256
+MAX_LIST_ITEMS = 128
+MAX_JSON_DEPTH = 16
+MAX_JSON_NODES = 20_000
+MAX_ARGV_ITEMS = 64
+MAX_ARGV_ITEM_CHARS = 4_096
+MAX_SECRET_SCAN_LINES = 20_000
+SECRET_SCAN_LINE_CHARS = 4_096
+PROCESS_TIMEOUT_SECONDS = 30.0
+KILL_GRACE_SECONDS = 2.0
+MAX_RECEIPT_BYTES = 8 * 1024 * 1024
+MAX_REPLAY_BYTES = 8 * 1024 * 1024
+
+LIMITS_SNAPSHOT = {
+    "max_transcript_bytes": MAX_TRANSCRIPT_BYTES,
+    "max_claims": MAX_CLAIMS,
+    "max_file_bytes": MAX_FILE_BYTES,
+    "max_output_bytes": MAX_OUTPUT_BYTES,
+    "process_timeout_seconds": PROCESS_TIMEOUT_SECONDS,
+}
