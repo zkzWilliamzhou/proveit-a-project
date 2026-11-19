@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proveit"
+version = "1.0.0"
+description = "Claim receipts for AI coding agents: deterministic, LLM-free evidence compilation"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["ai-agents", "verification", "provenance", "ci", "developer-tools"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+proveit = "proveit.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["proveit*"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "SIM", "RUF", "EXE", "ISC", "BLE", "FA", "PLW"]
+# EXE002 is excluded because the build sandbox mount forces mode 0777 on every
+# file regardless of chmod. In a normal checkout these files are 0644.
+ignore = ["E402", "E501", "ISC001", "EXE002"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
