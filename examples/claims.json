@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "claims": [
+    {
+      "id": "C1",
+      "statement": "No secrets were introduced",
+      "kind": "no_secrets"
+    },
+    {
+      "id": "C2",
+      "statement": "No new dependencies were added",
+      "kind": "no_new_dependencies"
+    },
+    {
+      "id": "C3",
+      "statement": "Only files in the declared set changed",
+      "kind": "only_changed_files",
+      "params": {
+        "files": ["proveit/engine.py", "tests/test_engine.py"]
+      }
+    },
+    {
+      "id": "C4",
+      "statement": "The diff stays small",
+      "kind": "small_diff",
+      "params": { "max": 400 }
+    },
+    {
+      "id": "C5",
+      "statement": "All changed Python files parse",
+      "kind": "python_syntax_ok"
+    },
+    {
+      "id": "C6",
+      "statement": "The public API surface did not shrink",
+      "kind": "backward_compatible"
+    },
+    {
+      "id": "C7",
+      "statement": "All tests pass",
+      "kind": "tests_pass"
+    },
+    {
+      "id": "C8",
+      "statement": "This is production ready",
+      "kind": "production_ready"
+    }
+  ]
+}
